@@ -154,6 +154,9 @@ void master(PGM *pgm, int filt_size, int num_procs)
   int active_slaves = 0;
   int terminated_slaves = 0;
   int total_slaves = num_procs - 1;
+
+  double t1,t2;
+  t1 = MPI_Wtime();  // inicia a contagem do tempo
   
   // Main loop: handle work requests and results until all slaves are terminated
   while (terminated_slaves < total_slaves)
@@ -199,6 +202,9 @@ void master(PGM *pgm, int filt_size, int num_procs)
     }
   }
   
+  t2 = MPI_Wtime(); // termina a contagem do tempo
+  printf("\nTempo de execucao: %f\n\n", t2-t1);  
+
   saveImage(filtered, "filtered.pgm");
   printf("The image file has been filtered\n");
   
@@ -323,6 +329,7 @@ int main(int argc, char *argv[])
   free(pgm->data);
   free(pgm);
   
-  MPI_Finalize();
+  MPI_Finalize(); 
+
   return 0;
 }
