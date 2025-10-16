@@ -13,7 +13,7 @@ fi
 
 echo ""
 echo "=== Running with 4 processes ==="
-mpirun -np 4 ./AverageFilterKernel Sample4k.pgm 30
+mpirun -np 4 ./AverageFilterKernel Sample4k.pgm 20
 
 if [ $? -eq 0 ]; then
     echo ""

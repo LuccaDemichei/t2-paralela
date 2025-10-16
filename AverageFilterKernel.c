@@ -154,6 +154,7 @@ void master(PGM *pgm, int filt_size, int num_procs)
   int active_slaves = 0;
   int terminated_slaves = 0;
   int total_slaves = num_procs - 1;
+  unsigned int lines_sent[100];
 
   double t1,t2;
   t1 = MPI_Wtime();  // inicia a contagem do tempo
@@ -175,6 +176,7 @@ void master(PGM *pgm, int filt_size, int num_procs)
       if (next_line < total_lines)
       {
         // Send line number to slave
+        lines_sent[status.MPI_SOURCE] = next_line;
         MPI_Send(&next_line, 1, MPI_INT, status.MPI_SOURCE, WORK_ASSIGNMENT, MPI_COMM_WORLD);
         next_line++;
         active_slaves++;
@@ -190,8 +192,7 @@ void master(PGM *pgm, int filt_size, int num_procs)
     else if (status.MPI_TAG == RESULT)
     {
       // Receive result: line number first
-      int line_num;
-      MPI_Recv(&line_num, 1, MPI_INT, status.MPI_SOURCE, RESULT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      int line_num = lines_sent[status.MPI_SOURCE];
       
       // Then receive the filtered line data
       MPI_Recv(filtered->data[line_num], pgm->width, MPI_UNSIGNED_CHAR, 
@@ -203,7 +204,7 @@ void master(PGM *pgm, int filt_size, int num_procs)
   }
   
   t2 = MPI_Wtime(); // termina a contagem do tempo
-  printf("\nTempo de execucao: %f\n\n", t2-t1);  
+  printf("\nTempo de execucao: %f\n\n", t2-t1);
 
   saveImage(filtered, "filtered.pgm");
   printf("The image file has been filtered\n");
@@ -242,7 +243,6 @@ void slave(PGM *pgm, int filt_size)
     filterLine(pgm, line_num, filt_size, output_line);
     
     // Send result back to master
-    MPI_Send(&line_num, 1, MPI_INT, 0, RESULT, MPI_COMM_WORLD);
     MPI_Send(output_line, pgm->width, MPI_UNSIGNED_CHAR, 0, RESULT, MPI_COMM_WORLD);
   }
   
